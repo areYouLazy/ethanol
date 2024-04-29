@@ -1,0 +1,46 @@
+{{define "index"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="">
+    <meta name="description" content="A Meta Search Engine for Enterprise Applications">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx.org"></script>
+    <title>Ethanol</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/plugins.css">
+</head>
+
+<body>
+
+    <div id="main-container">
+        <div id="search-container" hx-target="#cards-container" hx-swap="innerHTML">
+            <form hx-get="/api/v1/ui/search" hx-indicator="#results-spinner"
+                hx-on-htmx-before-request="document.getElementById('cards-container').innerHTML = ''">
+                <div id="searchbar-container">
+                    <input class="form-control" type="search" name="q" autofocus>
+                </div>
+                <div id="searchbutton-container">
+                    <button type="submit" class="btn btn-outline-primary">Search</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="spinner-container">
+            <img id="results-spinner" class="htmx-indicator" src="/ui/img/90-ring.svg" />
+        </div>
+
+        <div id="cards-container" class="row row-cols-1 row-cols-md-4 g-4 cards-container"></div>
+    </div>
+
+</body>
+
+</html>
+{{end}}

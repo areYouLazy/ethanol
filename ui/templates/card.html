@@ -1,0 +1,58 @@
+{{ define "card" }}
+<div class="col">
+    <div class="card h-100 {{ .source }}">
+        <div class="card-header"></div>
+        <div class="card-body">
+            <h5 class="card-title">
+                {{ if .name }}
+                {{ .name }}
+                {{ else if .title }}
+                {{ .title }}
+                {{ end }}
+            </h5>
+            {{ if .description }}
+            <h6 class="card-subtitle mb-2 text-muted">
+                    <details>
+                        <summary>Description</summary>
+                        {{ .description }}
+                    </details>
+            </h6>
+            {{ end }}
+            {{ if .client }}
+            <p class="card-text">Client: {{ .client }}</p>
+            {{ end }}
+            {{ if .category }}
+            <p class="card-text">Category: {{ .category }}</p>
+            {{ end }}
+            {{ if .address }}
+            <p class="card-text">Address: {{ .address }}</p>
+            {{ end}}
+            {{ if .site }}
+            <p class="card-text">Site: {{ .site }}</p>
+            {{ end}}
+
+            {{ if .login }}
+            <p class="card-text">Login: {{ .login }}</p>
+            {{ end }}
+            {{ if .password }}
+            <p class="card-text">
+            <details>
+                <summary>Password</summary>
+                {{ .password }}
+            </details>
+            </p>
+            {{ end }}
+
+            <!-- try to keep links at the end of the card -->
+            {{ if .url }}
+            <a class="card-link" href="{{ .url }}" target="_blank">Go To Console</a>
+            {{ end }}
+        </div>
+        {{ if .label }}
+        <div class="card-footer text-muted">
+            {{ .label }}
+        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}

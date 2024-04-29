@@ -1,0 +1,13 @@
+ethanol:
+    client:
+        useragent: ethanol/1.0
+    server:
+        address: 0.0.0.0
+        port: 8888
+        pluginsfolder: "./search_providers"
+
+plugins:
+    checkmk:
+        - endpoint: "http://192.168.1.1/site/check_mk/"
+          password: "cmkpassword"
+          username: "cmkadmin"

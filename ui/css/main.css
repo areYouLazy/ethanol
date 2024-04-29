@@ -1,0 +1,111 @@
+html {
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    /* background-color: lightblue; */
+    justify-content: center;
+    height: 100%;
+}
+
+#main-container {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    /* background-color: lightpink; */
+    align-items: center;
+}
+
+#main-container #search-container {
+    display: flex;
+    justify-content: center;
+    /* background-color: yellow; */
+    margin: 3px;
+}
+
+#main-container #search-container form {
+    display: flex;
+    justify-content: center;
+}
+
+#main-container #search-container #searchbar-container {}
+
+#main-container #search-container #searchbutton-container {}
+
+#main-container #results-container-div {
+    display: flex;
+    /* border-top: blue 1px solid; */
+}
+
+#main-container #results-container {
+    display: flex;
+    flex-wrap: wrap;
+    /* justify-content: space-between;
+    align-items: center; */
+    /* background-color: green; */
+}
+
+ul {
+    list-style-type: none;
+}
+
+ul li {
+    margin: 3px;
+    min-width: 200px;
+    min-height: 200px;
+    display: flex;
+}
+
+.search-result-li {}
+
+.search-result {
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* background-color: yellow; */
+    width: 100%;
+    height: 100%;
+    padding: 3px;
+}
+
+.spinner-container {
+    width: 100%;
+    height: 100px;
+    max-height: 100px;
+    /* background-color: blue; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#results-spinner {
+    height: 100%;
+    width: 100%;
+}
+
+
+/*
+CARD
+*/
+
+/* .cards-container-div {
+    width: 100%
+} */
+
+.cards-container {
+    width: 100%
+}
+
+/* .cards-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+} */
+
+/* .card {
+    height: 250px;
+    width: 250px;
+} */
+

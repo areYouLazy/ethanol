@@ -1,0 +1,61 @@
+ethanol:
+    client:
+        proxy:
+            address: 127.0.0.1 # proxy address
+            authenticate: false # true if proxy requires authentication
+            cacertificate: ""
+            enable: false # use proxy
+            password: "" # proxy password
+            port: 8080 # proxy port
+            protocol: http
+            username: "" # proxy username
+        useragent: ethanol/1.0 # user-agent http header used in requests
+    server:
+        address: 0.0.0.0 # server address to expose ethanol
+        forwardedbyclientip: false
+        idletimeout: 60 # server timeout, you should not change this
+        pluginsfolder: /etc/ethanol/search_providers/ # plugins folder
+        port: 8888 # server port
+        readtimeout: 15 # server timeout, you should not change this
+        remoteipheaders: # list of http headers to look for client ip
+            - X-Forwarded-For
+            - X-Real-IP
+        security: # webserver security parameters
+            headers:
+                cachecontrol: no-cache # cache-control https header
+                csp: default-src * 'unsafe-inline' 'unsafe-eval' # content-security-policy https header
+                hsts: maxage=31536000; includeSubDomains # strict-transport-security https header
+                xcontenttypeoptions: nosniff # x-content-type-options https headers
+                xframeoptions: SAMEORIGIN # x-frame-options https headers
+                xssprotection: 1; mode=block # xss-protection https headers
+            secure: true # use security headers
+        signature:
+            server: ethanol # server http header
+            xpoweredby: gin-gonic # x-powered-by header
+        truestedproxies: # list of proxies authorized to sit in front of ethanol
+            - localhost
+            - 127.0.0.1
+        websocket:
+            origins: # list of origins allowed to open websocket connections
+                - localhost
+                - 127.0.0.1
+            readbuffersize: 1024 # websocket buffer, you should not change this
+            writebuffersize: 1024 # websocket buffer, you should not change this
+        writetimeout: 15 # server timeout, you should not change this
+plugins: # plugins configurations
+    checkmk: # list of check_mk endpoints
+        - endpoint: "" # http://{host}/{site}/check_mk/
+          password: "" # password
+          username: "" # username
+        - endpoint: "" # http://{host}/{site}/check_mk/
+          password: "" # password
+          username: "" # username
+    syspass: # list of syspass endpoints
+        - apikey: "" # api key with account/search permission
+          apikeypassphrase: "" # api key password
+          count: 1 # number of results to be returned by query
+          endpoint: "" # https://{host}/syspass/
+        - apikey: "" # api key with account/search permission
+          apikeypassphrase: "" # api key password
+          count: 1 # number of results to be returned by query
+          endpoint: "" # https://{host}/syspass/
