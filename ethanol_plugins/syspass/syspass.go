@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"net/http"
 	"net/url"
 	"sync"
 
@@ -20,9 +19,12 @@ import (
 
 // define plugin constants
 const (
-	name    = "syspass_search_plugin"
-	label   = "SysPass"
-	version = "0.1"
+	name        = "syspass_search_plugin"
+	provider    = "syspass_3.2.11_apikey"
+	description = "This plugins get results from a syspass installation through API Key"
+	label       = "SysPass"
+	raw_label   = "syspass"
+	version     = "0.1"
 )
 
 // searchPlugin structure to hold Search routine
@@ -33,14 +35,27 @@ func (s *searchPlugin) Name() string {
 	return name
 }
 
+// Provider exposes plugin provider
+func (s *searchPlugin) Provider() string {
+	return provider
+}
+
+// Description exposes plugin description
+func (s *searchPlugin) Description() string {
+	return description
+}
+
 // Version exposes plugin version
 func (s *searchPlugin) Version() string {
 	return version
 }
 
-func (s *searchPlugin) Search(getNewHTTPClient func() *http.Client, getNewHTTPGetRequest func() *http.Request, getNewHTTPPostRequest func() *http.Request, query string, resultsChan chan<- types.SearchResult) {
+// Search prepare environment for the actual query
+func (s *searchPlugin) Search(query string, resultsChan chan<- types.SearchResult) {
+	// define a list of backends
 	backends := []backend{}
 
+	// load backends from configuration
 	err := viper.UnmarshalKey("plugins.syspass", &backends)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -49,27 +64,32 @@ func (s *searchPlugin) Search(getNewHTTPClient func() *http.Client, getNewHTTPGe
 		return
 	}
 
+	// log
 	logrus.WithFields(logrus.Fields{
 		"configurations": backends,
 	}).Debug("syspass configurations")
 
+	// define a waitgroup for backend routines
 	var backendWG sync.WaitGroup
 
+	// iterate backends
 	for _, b := range backends {
 		backendWG.Add(1)
 
+		// start search in a goroutine
 		go func(bck backend) {
 			defer backendWG.Done()
 
-			search(getNewHTTPClient(), getNewHTTPPostRequest(), query, bck, resultsChan)
+			search(query, bck, resultsChan)
 		}(b)
 	}
 
+	// wait for jobs to be done
 	backendWG.Wait()
 }
 
-// accountSearch actual query to backend
-func search(client *http.Client, request *http.Request, query string, backend backend, resultsChan chan<- types.SearchResult) {
+// search actual query to backend
+func search(query string, backend backend, resultsChan chan<- types.SearchResult) {
 	var r rawResponse
 
 	queryURL, err := url.JoinPath(backend.Endpoint, "api.php")
@@ -101,6 +121,9 @@ func search(client *http.Client, request *http.Request, query string, backend ba
 		return
 	}
 
+	// get a new ethanol HTTP post request
+	request := utils.NewEthanolHTTPClientPOSTRequest()
+
 	// add content-type header
 	request.Header.Del("Content-Type")
 	request.Header.Add("Content-Type", "application/json")
@@ -122,6 +145,9 @@ func search(client *http.Client, request *http.Request, query string, backend ba
 
 	// dump request
 	utils.DumpHTTPRequest(request, "syspass request for account/search")
+
+	// get a new ethanol HTTP client
+	client := utils.NewEthanolHTTPClient(backend.InsecureSkipSSLVerify)
 
 	// do request
 	res, err := client.Do(request)
@@ -146,9 +172,12 @@ func search(client *http.Client, request *http.Request, query string, backend ba
 		result["description"] = item.Notes
 		result["client"] = item.ClientName
 		result["category"] = item.CategoryName
+		result["url"] = item.URL
 		result["login"] = item.Login
 		result["source"] = name
 		result["label"] = label
+		result["raw_label"] = raw_label
+		result["provider"] = provider
 
 		// get password for every item in response
 		var p rawPasswordResponse
@@ -172,8 +201,6 @@ func search(client *http.Client, request *http.Request, query string, backend ba
 
 			return
 		}
-
-		logrus.Debug("getPasswordBody", string(getPasswordBody))
 
 		// add body to request
 		request.Body = io.NopCloser(bytes.NewReader(getPasswordBody))

@@ -6,7 +6,7 @@ type rawResponse struct {
 	Result  struct {
 		ItemID int `json:"itemId"`
 		Result []struct {
-			ID                        string `json:"id"`
+			ID                        int    `json:"id"`
 			UserID                    int    `json:"userId"`
 			UserGroupID               int    `json:"userGroupId"`
 			UserEditId                int    `json:"userEditId"`
@@ -65,7 +65,7 @@ type queryBodyParams struct {
 	TokenPass string `json:"tokenPass"` // password used to generate api key
 	Text      string `json:"text"`      // text to search for
 	Count     int    `json:"count"`     // number of results
-	ID        string `json:"id"`        // id of a syspass account, for account/view action
+	ID        int    `json:"id"`        // id of a syspass account, for account/view action
 	Details   int    `json:"details"`   // 1 to get account details
 }
 

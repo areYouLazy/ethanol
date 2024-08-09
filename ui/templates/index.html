@@ -12,6 +12,7 @@
         crossorigin="anonymous"></script>
     <script src="https://unpkg.com/htmx.org"></script>
     <title>Ethanol</title>
+    <link rel="icon" type="image/x-icon" href="/ui/img/favicon.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link rel="stylesheet" href="css/main.css">
@@ -19,7 +20,6 @@
 </head>
 
 <body>
-
     <div id="main-container">
         <div id="search-container" hx-target="#cards-container" hx-swap="innerHTML">
             <form hx-get="/api/v1/ui/search" hx-indicator="#results-spinner"
@@ -34,7 +34,7 @@
         </div>
 
         <div class="spinner-container">
-            <img id="results-spinner" class="htmx-indicator" src="/ui/img/90-ring.svg" />
+            <img id="results-spinner" class="htmx-indicator" src="/ui/img/ring.svg" />
         </div>
 
         <div id="cards-container" class="row row-cols-1 row-cols-md-4 g-4 cards-container"></div>

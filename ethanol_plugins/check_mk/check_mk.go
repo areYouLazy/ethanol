@@ -6,7 +6,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
 	"strings"
 	"sync"
@@ -20,9 +19,12 @@ import (
 
 // define plugin constants
 const (
-	name    = "check_mk_search_plugin"
-	label   = "Check_MK"
-	version = "0.1"
+	name        = "check_mk_search_plugin"
+	provider    = "check_mk_0.1_username_password"
+	description = "This plugins get results from a check_mk installation through username/password authentication"
+	label       = "Check_MK"
+	raw_label   = "check_mk"
+	version     = "0.1"
 )
 
 // searchPlugin structure to hold Search routine
@@ -33,17 +35,28 @@ func (s *searchPlugin) Name() string {
 	return name
 }
 
+// Provider exposes plugin name
+func (s *searchPlugin) Provider() string {
+	return provider
+}
+
+// Description exposes plugin name
+func (s *searchPlugin) Description() string {
+	return description
+}
+
 // Version exposes plugin version
 func (s *searchPlugin) Version() string {
 	return version
 }
 
-// Search main routine exported from plugin
-func (s *searchPlugin) Search(getNewHTTPClient func() *http.Client, getNewHTTPGetRequest func() *http.Request, getNewHTTPPostRequest func() *http.Request, query string, resultsChan chan<- types.SearchResult) {
+// Search prepare environment for the actual query
+func (s *searchPlugin) Search(query string, resultsChan chan<- types.SearchResult) {
+	// define a list of backends
 	backends := []backend{}
 
-	// unmarshal plugin configuration
-	err := viper.UnmarshalKey("Plugins.CheckMK", &backends)
+	// load backends from configuration
+	err := viper.UnmarshalKey("plugins.checkmk", &backends)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -51,28 +64,31 @@ func (s *searchPlugin) Search(getNewHTTPClient func() *http.Client, getNewHTTPGe
 		return
 	}
 
+	// log
 	logrus.WithFields(logrus.Fields{
 		"configurations": backends,
 	}).Debug("check_mk configurations")
 
-	// search for every backend
+	// define a waitgroup for backend routines
 	var backendWG sync.WaitGroup
 
-	// add tasks for every backend
+	// iterate backends
 	for _, b := range backends {
 		backendWG.Add(1)
 
+		// start search in a goroutine
 		go func(bck backend) {
 			defer backendWG.Done()
-			// use a channel to collect results
-			search(getNewHTTPClient(), getNewHTTPGetRequest(), query, bck, resultsChan)
+			search(query, bck, resultsChan)
 		}(b)
 	}
 
+	// wait for jobs to be done
 	backendWG.Wait()
 }
 
-func search(client *http.Client, request *http.Request, query string, backend backend, resultsChan chan<- types.SearchResult) {
+// search actual query to backend
+func search(query string, backend backend, resultsChan chan<- types.SearchResult) {
 	var r rawResponse
 
 	// get site name from endpoint url
@@ -105,17 +121,12 @@ func search(client *http.Client, request *http.Request, query string, backend ba
 		"/api/1.0/domain-types/host/collections/all",
 		queryString,
 	)
-	// queryURL, err := url.JoinPath(backend.Endpoint, "/api/1.0/domain-types/host/collections/all", queryString)
-	// if err != nil {
-	// 	logrus.WithFields(logrus.Fields{
-	// 		"error": err.Error(),
-	// 	}).Error("error in endpoint url composition")
 
-	// 	return
-	// }
+	// get a new ethanol GET request
+	request := utils.NewEthanolHTTPClientGETRequest()
 
 	// add content-type header
-	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	// request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	// build authorization header
 	authHeader := fmt.Sprintf(
@@ -128,7 +139,7 @@ func search(client *http.Client, request *http.Request, query string, backend ba
 	request.Header.Add("Authorization", authHeader)
 
 	// add accept header
-	request.Header.Add("Accept", "*/*")
+	request.Header.Add("Accept", "application/json")
 
 	// format request url
 	parsedQueryURL, err := url.Parse(queryURL)
@@ -141,6 +152,9 @@ func search(client *http.Client, request *http.Request, query string, backend ba
 
 	// dump http request
 	utils.DumpHTTPRequest(request, "check_mk request")
+
+	// get a new ethanol HTTP client
+	client := utils.NewEthanolHTTPClient(backend.InsecureSkipSSLVerify)
 
 	// do request
 	res, err := client.Do(request)
@@ -169,6 +183,7 @@ func search(client *http.Client, request *http.Request, query string, backend ba
 		result["url"] = fmt.Sprintf("%s%s%s", backend.Endpoint, objectURLFormat, url.QueryEscape(fmt.Sprintf(objectQueryFormat, item.Extensions.Name)))
 		result["source"] = name
 		result["label"] = label
+		result["raw_label"] = raw_label
 
 		// send result to results channel
 		resultsChan <- result

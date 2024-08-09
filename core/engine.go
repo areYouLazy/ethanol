@@ -15,9 +15,9 @@ func getCoreEngine() *gin.Engine {
 	r := gin.New()
 
 	// set engine customizations
-	r.ForwardedByClientIP = viper.GetBool("Ethanol.Server.ForwardedByClientIP")
-	r.RemoteIPHeaders = viper.GetStringSlice("Ethanol.Server.RemoteIPHeaders")
-	r.SetTrustedProxies(viper.GetStringSlice("Ethanol.Server.TrustedProxies"))
+	r.ForwardedByClientIP = viper.GetBool("ethanol.server.forwardedbyclientip")
+	r.RemoteIPHeaders = viper.GetStringSlice("ethanol.server.remoteipheaders")
+	r.SetTrustedProxies(viper.GetStringSlice("ethanol.server.trustedproxies"))
 
 	// load htmx templates
 	r.LoadHTMLGlob("ui/templates/*")
@@ -28,7 +28,7 @@ func getCoreEngine() *gin.Engine {
 	r.Use(signatureMiddleware())
 
 	// check if we need to be a secure webserver
-	if viper.GetBool("Ethanol.Server.Security.Secure") {
+	if viper.GetBool("ethanol.server.tls.enabled") {
 		r.Use(securityMiddleware())
 	}
 
@@ -51,6 +51,11 @@ func getCoreEngine() *gin.Engine {
 
 	// serve htmx ui
 	r.GET("/ui/:template", uixHandler)
+
+	// intercept root calls for redirect to ui
+	r.GET("/", redirectToIndexHandler)
+	r.GET("/ui", redirectToIndexHandler)
+	r.GET("/ui/", redirectToIndexHandler)
 
 	// log engine configuration
 	logrus.WithFields(logrus.Fields{

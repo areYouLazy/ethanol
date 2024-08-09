@@ -5,25 +5,28 @@ It is like a [MetaSearch Engine](https://en.wikipedia.org/wiki/Metasearch_engine
 
 ## Table of Content
 
-- [Table of Content](#table-of-content)
-- [Background](#background)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Notes](#notes)
-- [Help](#help)
-- [List of supported plugins](#list-of-supported-plugins)
-- [Build Core](#build-core)
-- [Build Plugins](#build-plugins)
-- [Write Plugins](#write-plugins)
-- [Utils](#utils)
-	- [Dump HTTP Requests and Responses](#dump-http-requests-and-responses)
-	- [Pass plugins data to results](#pass-plugins-data-to-results)
+- [Ethanol](#ethanol)
+	- [Table of Content](#table-of-content)
+	- [Supported Environments](#supported-environments)
+	- [Installation](#installation)
+	- [Usage](#usage)
+	- [Notes](#notes)
+	- [Help](#help)
+	- [Build Core](#build-core)
+	- [Build Plugins](#build-plugins)
+	- [Write Plugins](#write-plugins)
+	- [Utils](#utils)
+		- [Dump HTTP Requests and Responses](#dump-http-requests-and-responses)
+		- [Pass plugins data to results](#pass-plugins-data-to-results)
 
-## Background
+## Supported Environments
 
-This project started as a personal playground to improve my `golang` skills, so you'll find test code, dead code, prepared code, any kind of code!
+Ethanol is actually capable of querying the following systems:
 
-Also I'm not a professional developer, so some decision may sound stranges or completely insane, any help is welcome!
+- [Check_MK](https://checkmk.com/)
+- [SysPass](https://syspass.org/en)
+- [O.T.R.S.](https://otrs.com/)
+- [Jira](https://www.atlassian.com/software/jira)
 
 ## Installation
 
@@ -73,17 +76,12 @@ Usage of ./ethanol:
     	print log messages in json format (default false)
 ```
 
-## List of supported plugins
-
-- [Check_MK](https://checkmk.com/)
-- [SysPass](https://syspass.org/)
-
 ## Build Core
 
-The `build.sh` script is designed to build the ethanol core, or you can compile it by hand
+The `build.sh` script is designed to build the ethanol core, along with all available plugins
 
 ```console
-root@localhost$ go build
+root@localhost$ ./build.sh
 ```
 
 ## Build Plugins
@@ -112,16 +110,17 @@ type SearchResult map[string]interface{}
 // SearchPlugin plugins must satisfy this interface
 type SearchPlugin interface {
 	Name() string
+	Provider() string
+	Description() string
 	Version() string
-	Search(func() *http.Client, func() *http.Request, func() *http.Request, string, chan<- SearchResult)
+	Search(string, chan<- SearchResult)
 }
 ```
 
-You should use `GetNewHTTPClient()` to get a preconfigured HTTP Client. This will help Ethanol to be consist across HTTP calls 
+You should use `utils.NewEthanolHTTPClient()` to get a preconfigured HTTP Client. This will help Ethanol to be consist across HTTP calls 
 when it acts as an HTTP Client
 
-In the same way, `GetNewHTTPGETRequest()` will provides both a GET and a POST requests. This will help Ethanol to be consist across HTTP calls 
-when it acts as an HTTP Client
+In the same way, `utils.NewEthanolHTTPClientGETRequest()` and `utils.NewEthanolHTTPClientPOSTRequest()` will provides a GET and a POST requests. This will help Ethanol to be consist across HTTP calls when it acts as an HTTP Client
 
 The Plugin `export` is usually done at the end of the file
 
@@ -132,20 +131,37 @@ package main
 
 const (
     name = "example_search_plugin"
+	provider = "example_search_1.0_username_password"
+	description = "get results from an example_search installation through username/password authentication"
     version = "0.1"
+	label = "Example Search"
+	raw_label = "example_search"
 )
 
 type searchPlugin interface{}
 
+// Name exposes plugin name
 func (s *searchPlugin) Name() string {
     return name
 }
 
+// Provider exposes plugin provider
+func (s *searchPlugin) Provider() string {
+	return provider
+}
+
+// Description exposes plugin description
+func (s *searchPlugin) Description() string {
+	return description
+}
+
+// Version exposes plugin version
 func (s *searchPlugin) Version() string {
     return version
 }
 
-func (s *searchPlugin) Search(getNewHTTPClient func() *http.Client, getNewHTTPGetRequest func() *http.Request, getNewHTTPPostRequest func() *http.Request, query string, resultsChan chan<- types.SearchResult) {
+// Search prepare environment for queries
+func (s *searchPlugin) Search(query string, resultsChan chan<- types.SearchResult) {
 
 	var backendWG sync.WaitGroup
 
@@ -157,15 +173,24 @@ func (s *searchPlugin) Search(getNewHTTPClient func() *http.Client, getNewHTTPGe
 
 		go func() {
 			defer backendWG.Done()
-			search(client, req, query, b, resultsChan)
+			search(query, b, resultsChan)
 		}(b)
     }
 
 	backendWG.Wait()
 }
 
-// [...]
+// search performs the actual search
+func search(query string, backend backend, results chan<- types.SearchResult) {
+	client := utils.NewEthanolHTTPClient()
 
+	request := utils.NewEthanolHTTPClientGETRequest()
+
+	// do stuffs and send results to the channel
+	results <- res
+}
+
+// export symbol
 var Searcher searchPlugin
 ```
 
@@ -198,22 +223,21 @@ utils.DumpHTTPResponse(response, "response from plugin <plugin_name>")
 
 ### Pass plugins data to results
 
-You should append plugins data to every result, like this.
+You should append plugins data to every result before send it.
 
 Those info's can be used in the UI to better diplay results
 
-```go
-var (
-	name = "example_search_plugin"
-	label = "Example"
-	version = "0.1"
-)
+`raw_label` is actualy used to select the correct template to render the result's card
 
+```go
 // [...]
 
-result["source_name"] = name
-result["source_label"] = label
-result["source_version"] = version
+result["name"] = name
+result["label"] = label
+result["raw_label"] = raw_label
+result["description"] = description
+result["provider"] = provider
+result["version"] = version
 
 resultsChan <- result
 ```

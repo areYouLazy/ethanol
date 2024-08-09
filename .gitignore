@@ -134,8 +134,10 @@ ethanol
 config.yml
 
 ## certificate files
-certs/
-certs/*
+ssl/
+ssl/*
+server.key
+server.pem
 
 ## output folder
 output/
@@ -154,3 +156,10 @@ build/*
 # builds
 ethanol*.deb
 ethanol.deb
+
+# config files
+config.minimal.yml
+
+# built plugins
+search_providers/
+search_providers/*

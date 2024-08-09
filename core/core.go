@@ -2,12 +2,14 @@ package core
 
 import (
 	"context"
+	"crypto/tls"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/areYouLazy/ethanol/proxy"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -25,22 +27,51 @@ func NewCore() *Core {
 func (c *Core) Init() {
 	var wait time.Duration
 
-	// proxy
-	proxy.Setup()
+	// tls
+	err := checkEthanolTLSCertificateKeyPair()
+	if err != nil {
+		generateEthanolTLSCertificateKeyPair()
+	}
+
+	// get logrus writer to be used in webserver configuration
+	w := logrus.New().Writer()
+	defer w.Close()
 
 	// define server instance
 	srv := &http.Server{
-		Addr:         viper.GetString("Ethanol.Server.Address") + ":" + viper.GetString("Ethanol.Server.Port"),
-		WriteTimeout: time.Duration(viper.GetInt("Ethanol.Server.WriteTimeout")) * time.Second,
-		ReadTimeout:  time.Duration(viper.GetInt("Ethanol.Server.ReadTimeout")) * time.Second,
-		IdleTimeout:  time.Duration(viper.GetInt("Ethanol.Server.IdleTimeout")) * time.Second,
+		Addr:         viper.GetString("ethanol.server.address") + ":" + viper.GetString("ethanol.server.port"),
+		WriteTimeout: time.Duration(viper.GetInt("ethanol.server.writetimeout")) * time.Second,
+		ReadTimeout:  time.Duration(viper.GetInt("ethanol.server.readtimeout")) * time.Second,
+		IdleTimeout:  time.Duration(viper.GetInt("ethanol.server.idletimeout")) * time.Second,
 		Handler:      getCoreEngine(),
+		TLSConfig: &tls.Config{
+			Certificates: getEthanolTLSCertificateKeyPairAsSlice(),
+		},
+		ErrorLog: log.New(w, "", 0),
 	}
 
 	// use goroutines to start services
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			logrus.Error(err.Error())
+		if viper.GetBool("ethanol.server.tls.enabled") {
+			if err := srv.ListenAndServeTLS("", ""); err != nil {
+				if err != http.ErrServerClosed {
+					logrus.WithFields(logrus.Fields{
+						"error": err.Error(),
+					}).Error("error in webserver execution")
+				} else {
+					logrus.Info("webserver closed")
+				}
+			}
+		} else {
+			if err := srv.ListenAndServe(); err != nil {
+				if err != http.ErrServerClosed {
+					logrus.WithFields(logrus.Fields{
+						"error": err.Error(),
+					}).Error("error in webserver execution")
+				} else {
+					logrus.Info("webserver closed")
+				}
+			}
 		}
 	}()
 
@@ -52,7 +83,7 @@ func (c *Core) Init() {
 
 	// greetings
 	logrus.WithFields(logrus.Fields{
-		"server_address": srv.Addr,
+		"server_address": fmt.Sprintf("https://%s", srv.Addr),
 	}).Info("ready to serve")
 
 	// debug configuration

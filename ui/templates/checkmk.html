@@ -1,0 +1,20 @@
+{{ define "checkmk" }}
+<div class="col">
+    <div class="card h-100 {{ .source }}">
+        <div class="card-header"></div>
+        <div class="card-body">
+            <h5 class="card-title">
+                {{ .name }}
+            </h5>
+            <p class="card-text">Address: {{ .address }}</p>
+            <p class="card-text">Site: {{ .site }}</p>
+
+            <!-- try to keep links at the end of the card -->
+            <a class="card-link" href="{{ .url }}" target="_blank">Go To Console</a>
+        </div>
+        <div class="card-footer text-muted">
+            {{ .label }}
+        </div>
+    </div>
+</div>
+{{ end }}

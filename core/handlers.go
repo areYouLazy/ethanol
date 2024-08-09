@@ -8,6 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func redirectToIndexHandler(c *gin.Context) {
+	c.Redirect(http.StatusMovedPermanently, "/ui/index")
+}
+
 func getStatusHandler(c *gin.Context) {
 	c.String(http.StatusOK, "ONLINE")
 }

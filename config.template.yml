@@ -20,7 +20,7 @@ ethanol:
         remoteipheaders: # list of http headers to look for client ip
             - X-Forwarded-For
             - X-Real-IP
-        security: # webserver security parameters
+        tls: # webserver security parameters
             headers:
                 cachecontrol: no-cache # cache-control https header
                 csp: default-src * 'unsafe-inline' 'unsafe-eval' # content-security-policy https header
@@ -28,7 +28,9 @@ ethanol:
                 xcontenttypeoptions: nosniff # x-content-type-options https headers
                 xframeoptions: SAMEORIGIN # x-frame-options https headers
                 xssprotection: 1; mode=block # xss-protection https headers
-            secure: true # use security headers
+            enabled: true # use security headers
+            certificate: ssl/server.pem # x509 certificate location
+            key: ssl/server.key # rsa key location
         signature:
             server: ethanol # server http header
             xpoweredby: gin-gonic # x-powered-by header
@@ -47,15 +49,24 @@ plugins: # plugins configurations
         - endpoint: "" # http://{host}/{site}/check_mk/
           password: "" # password
           username: "" # username
-        - endpoint: "" # http://{host}/{site}/check_mk/
-          password: "" # password
-          username: "" # username
+          insecureskipsslverify: false # validate backend ssl certificate
     syspass: # list of syspass endpoints
         - apikey: "" # api key with account/search permission
           apikeypassphrase: "" # api key password
           count: 1 # number of results to be returned by query
           endpoint: "" # https://{host}/syspass/
-        - apikey: "" # api key with account/search permission
-          apikeypassphrase: "" # api key password
-          count: 1 # number of results to be returned by query
-          endpoint: "" # https://{host}/syspass/
+          insecureskipsslverify: true # validate backend ssl certificate
+    jira:
+        - endpoint: "" # https://{host}
+          username: "" # username
+          password: "" # password
+          useremail: "" # user email
+          apitoken: "" # user api token
+          insecureskipsslverify: true # validate backend ssl certificate
+    otrs:
+        - endpoint: "" # http://{host}/otrs/index.pl
+          username: "" # username
+          password: "" # password
+          ticketsearchendpoint: "" # http://{host}/otrs/nph-genericinterface.pl/Webservice/{WebServiceName}/{WebServiceAction}
+          ticketendpoint: ""  # http://{host}/otrs/nph-genericinterface.pl/Webservice/{WebServiceName}/{WebServiceAction}
+          insecureskipsslverify: true # validate backend ssl certificate

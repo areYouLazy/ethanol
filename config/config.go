@@ -2,10 +2,8 @@ package config
 
 import (
 	"path"
-	"strings"
 
 	"github.com/areYouLazy/ethanol/flags"
-	"github.com/areYouLazy/ethanol/utils"
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -14,48 +12,43 @@ import (
 func Init() {
 	// check if we have a custom config file
 	if flags.ConfigFile != "" {
-		// check if we have a custom path to parse
-		if strings.Contains(flags.ConfigFile, "/") {
-			// split path (absolute or relative) and filename
-			logrus.WithFields(logrus.Fields{
-				"file_name": flags.ConfigFile,
-			}).Debug("found path in filename provided by cli flag ", utils.Bold("-config-file"))
-			fpath, fname := path.Split(flags.ConfigFile)
-			viper.SetConfigFile(fname)
+		// check if there's a relative or absolute path in filename
+		fpath, fname := path.Split(flags.ConfigFile)
+
+		// path.Split() returns empty fpath if there are no slashes in the provided file path
+		if fpath != "" {
+			// we found a path
 			viper.AddConfigPath(fpath)
-		} else {
-			// we have only a filename
-			logrus.WithFields(logrus.Fields{
-				"file_name": flags.ConfigFile,
-			}).Debug("no path in filename provided by cli flag ", utils.Bold("-config-file"))
-			viper.SetConfigName(flags.ConfigFile)
-			viper.AddConfigPath(".")
 		}
-	} else {
-		// fallback to default
+
+		// add default location and custom file name
+		viper.AddConfigPath(".")
+		viper.SetConfigFile(fname)
+
+		// log
 		logrus.WithFields(logrus.Fields{
-			"file_name": "config.yml",
-		}).Debug("using default configuration file")
+			"filename": flags.ConfigFile,
+		}).Info("custom configuration file provided")
+	} else {
 		viper.SetConfigName("config")
 		viper.AddConfigPath(".")
 	}
 
-	// set configuration type
+	// set configuration type, default to yaml
+	viper.SetConfigType("yaml")
+
+	// set configuration type as json if requested by flag
 	if flags.ConfigJSON {
-		logrus.Debug("parsing configuration file as json because of flag ", utils.Bold("-config-json"))
 		viper.SetConfigType("json")
-	} else {
-		logrus.Debug("parsing configuration file as yaml")
-		viper.SetConfigType("yaml")
+		logrus.Debug("reading configuration as a json file")
 	}
 
-	// logrus.Debug("parsing configuration file as yaml")
-	// viper.SetConfigType("yaml")
-
+	// log
 	logrus.WithFields(logrus.Fields{
 		"file_name": viper.GetViper().ConfigFileUsed(),
-	}).Debug("reading configuration file")
+	}).Info("reading configuration file")
 
+	// read configuration file
 	err := viper.ReadInConfig()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -63,10 +56,12 @@ func Init() {
 		}).Fatal("fatal error reading configuration file")
 	}
 
+	// enable watch config, for now just for monitoring
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		logrus.WithFields(logrus.Fields{
-			"file_name": e.Name,
+			"file_name":     e.Name,
+			"event_message": e.String(),
 		}).Debug("configuration file changed")
 	})
 }

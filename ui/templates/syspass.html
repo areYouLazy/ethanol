@@ -1,0 +1,35 @@
+{{ define "syspass" }}
+<div class="col">
+    <div class="card h-100 {{ .source }}">
+        <div class="card-header"></div>
+        <div class="card-body">
+            <h5 class="card-title">
+                {{ .title }}
+            </h5>
+            <h6 class="card-subtitle mb-2 text-muted">
+                    <details>
+                        <summary>Description</summary>
+                        {{ .description }}
+                    </details>
+            </h6>
+            <p class="card-text">Client: {{ .client }}</p>
+            <p class="card-text">Category: {{ .category }}</p>
+            <p class="card-text">URL: {{ .url }}</p>
+
+            <p class="card-text">Login: {{ .login }}</p>
+            <p class="card-text">
+            <details>
+                <summary>Password</summary>
+                {{ .password }}
+            </details>
+            </p>
+
+            <!-- try to keep links at the end of the card -->
+            <!-- <a class="card-link" href="{{ .url }}" target="_blank">Go To Console</a> -->
+        </div>
+        <div class="card-footer text-muted">
+            {{ .label }}
+        </div>
+    </div>
+</div>
+{{ end }}

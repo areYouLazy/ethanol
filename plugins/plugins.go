@@ -1,17 +1,13 @@
 package plugins
 
 import (
-	"net/http"
-	"net/http/cookiejar"
 	"os"
 	"path"
 	"plugin"
 	"reflect"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/areYouLazy/ethanol/proxy"
 	"github.com/areYouLazy/ethanol/types"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -31,11 +27,11 @@ func Init() {
 	}
 
 	// load plugins
-	plugins, err := os.ReadDir(viper.GetString("Ethanol.Server.PluginsFolder"))
+	plugins, err := os.ReadDir(viper.GetString("ethanol.server.pluginsfolder"))
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":  err.Error(),
-			"folder": viper.GetString("Ethanol.Server.PluginsFolder"),
+			"folder": viper.GetString("ethanol.server.pluginsfolder"),
 		}).Error("error reading plugin folder")
 
 		return
@@ -47,7 +43,7 @@ func Init() {
 		if strings.HasSuffix(v.Name(), ".so") && !v.IsDir() {
 			// construct absolute path
 			pluginName := path.Join(
-				viper.GetString("Ethanol.Server.PluginsFolder"),
+				viper.GetString("ethanol.server.pluginsfolder"),
 				v.Name(),
 			)
 
@@ -92,9 +88,10 @@ func Init() {
 
 	logrus.WithFields(logrus.Fields{
 		"number_of_plugins": len(pluginsManager.plugins),
-	}).Debug("plugins loaded")
+	}).Info("plugins loaded")
 }
 
+// BulkSearch runs a search for every loaded plugin
 func BulkSearch(query string) ([]types.SearchResult, error) {
 	// define a results Channel
 	resultsChan := make(chan types.SearchResult)
@@ -103,32 +100,31 @@ func BulkSearch(query string) ([]types.SearchResult, error) {
 	// create a waitgroup to wait for all plugins to execute
 	var wg sync.WaitGroup
 
+	// TODO(areYouLazy) : is this even correct?
 	go func() {
 		wg.Wait()
 		close(resultsChan)
 	}()
-
-	// create mutex to handle concurrent writes
-	// var mu sync.Mutex
 
 	// iterate plugins
 	for _, plugin := range pluginsManager.plugins {
 		// increment waitgroup counter
 		wg.Add(1)
 
-		// goroutine for every plugin
+		// start a goroutine for every plugin
 		go func(plugin types.SearchPlugin) {
 			// decrement waitgroup on exit
 			defer wg.Done()
 
 			// log
 			logrus.WithFields(logrus.Fields{
-				"name":    plugin.Name(),
-				"version": plugin.Version(),
+				"name":     plugin.Name(),
+				"version":  plugin.Version(),
+				"provider": plugin.Provider(),
 			}).Debug("collecting search results from plugin")
 
 			// fire search, results are sent to plugin channel
-			plugin.Search(getNewHTTPClient, GetNewHTTPGETRequest, GetNewHTTPPOSTRequest, query, resultsChan)
+			plugin.Search(query, resultsChan)
 		}(plugin)
 	}
 
@@ -137,80 +133,10 @@ func BulkSearch(query string) ([]types.SearchResult, error) {
 		results = append(results, result)
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"query": query,
+	}).Info("search completed")
+
 	// return collected results
 	return results, nil
-}
-
-func getNewHTTPClient() *http.Client {
-	// setup cookie jar
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		return nil
-	}
-
-	// setup transport with proxy (if required)
-	transport := http.Transport{
-		Proxy: proxy.GetHTTPProxyURL(),
-	}
-
-	// setup client
-	client := http.Client{
-		Timeout:   5 * time.Second,
-		Transport: &transport,
-		Jar:       jar,
-	}
-
-	// return client
-	return &client
-}
-
-func GetNewHTTPClient() *http.Client {
-	return getNewHTTPClient()
-}
-
-func getNewHTTPRequests() (*http.Request, *http.Request) {
-	// setup GET http request
-	getRequest, err := http.NewRequest(http.MethodGet, "", nil)
-	if err != nil {
-		return nil, nil
-	}
-	// setup user-agent header
-	getRequest.Header.Add("User-Agent", viper.GetString("Ethanol.Client.UserAgent"))
-
-	// setup post HTTP request
-	postRequest, err := http.NewRequest(http.MethodPost, "", nil)
-	if err != nil {
-		return nil, nil
-	}
-	// setup user-agent header
-	postRequest.Header.Add("User-Agent", viper.GetString("Ethanol.Client.UserAgent"))
-
-	// return requests
-	return getRequest, postRequest
-}
-
-func GetNewHTTPGETRequest() *http.Request {
-	// setup GET http request
-	getRequest, err := http.NewRequest(http.MethodGet, "", nil)
-	if err != nil {
-		return nil
-	}
-
-	// setup user-agent header
-	getRequest.Header.Add("User-Agent", viper.GetString("Ethanol.Client.UserAgent"))
-
-	return getRequest
-}
-
-func GetNewHTTPPOSTRequest() *http.Request {
-	// setup post HTTP request
-	postRequest, err := http.NewRequest(http.MethodPost, "", nil)
-	if err != nil {
-		return nil
-	}
-	// setup user-agent header
-	postRequest.Header.Add("User-Agent", viper.GetString("Ethanol.Client.UserAgent"))
-
-	// return requests
-	return postRequest
 }

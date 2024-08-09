@@ -1,0 +1,27 @@
+{{ define "jira" }}
+<div class="col">
+    <div class="card h-100 {{ .source }}">
+        <div class="card-header"></div>
+        <div class="card-body">
+            <h5 class="card-title">
+                {{ .key }}
+            </h5>
+            <h6 class="card-subtitle mb-2 text-muted">
+                    <details>
+                        <summary>Description</summary>
+                        {{ .description }}
+                    </details>
+            </h6>
+            <h6 class="card-summary">Summary: {{ .summary }}</h6>
+            <h6 class="card-creator">Creator: {{ .creator_name }}, {{ .creator_email }}</h6>
+            <h6 class="card-text">Created: {{ .created }}</h6>
+
+            <!-- try to keep links at the end of the card -->
+            <a class="card-link" href="{{ .url }}" target="_blank">Go To Console</a>
+        </div>
+        <div class="card-footer text-muted">
+            {{ .label }}
+        </div>
+    </div>
+</div>
+{{ end }}
