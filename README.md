@@ -168,9 +168,6 @@ func (s *searchPlugin) Search(query string, resultsChan chan<- types.SearchResul
     for _, b := range backends {
 		backendWG.Add(1)
 
-		client := getNewHTTPClient()
-		req := getNewHTTPGetRequest()
-
 		go func() {
 			defer backendWG.Done()
 			search(query, b, resultsChan)
