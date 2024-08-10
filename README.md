@@ -30,8 +30,6 @@ Ethanol is actually capable of querying the following systems:
 
 ## Installation
 
-Once the 1st release is out you'll be able to `apt install ethanol`, until that moment you need to go the raw way
-
 ```console
 root@localhost$ # Clone and access repository
 root@localhost$ git clone https://github.com/areYouLazy/ethanol
@@ -40,8 +38,8 @@ root@localhost$
 root@localhost$ # start the build.sh script
 root@localhost$ ./build.sh
 root@localhost$
-root@localhost$ # generate a valid configuration file (you can copy the minimal example)
-root@localhost$ cp config.minimal.yml config.yml
+root@localhost$ # generate a valid configuration file
+root@localhost$ cp config.template.yml config.yml
 root@localhost$
 root@localhost$ # edit the configuration file according to your needs, than you can start ethanol
 root@localhost$ ./ethanol
