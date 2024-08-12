@@ -70,3 +70,7 @@ plugins: # plugins configurations
           ticketsearchendpoint: "" # http://{host}/otrs/nph-genericinterface.pl/Webservice/{WebServiceName}/{WebServiceAction}
           ticketendpoint: ""  # http://{host}/otrs/nph-genericinterface.pl/Webservice/{WebServiceName}/{WebServiceAction}
           insecureskipsslverify: true # validate backend ssl certificate
+    prtg:
+        - endpoint: "" # https://{host}
+          apitoken: "" # API Token
+          insecureskipsslverify: true # validate backend ssl certificate
