@@ -5,19 +5,18 @@ It is like a [MetaSearch Engine](https://en.wikipedia.org/wiki/Metasearch_engine
 
 ## Table of Content
 
-- [Ethanol](#ethanol)
-	- [Table of Content](#table-of-content)
-	- [Supported Environments](#supported-environments)
-	- [Installation](#installation)
-	- [Usage](#usage)
-	- [Notes](#notes)
-	- [Help](#help)
-	- [Build Core](#build-core)
-	- [Build Plugins](#build-plugins)
-	- [Write Plugins](#write-plugins)
-	- [Utils](#utils)
-		- [Dump HTTP Requests and Responses](#dump-http-requests-and-responses)
-		- [Pass plugins data to results](#pass-plugins-data-to-results)
+- [Table of Content](#table-of-content)
+- [Supported Environments](#supported-environments)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Notes](#notes)
+- [Help](#help)
+- [Build Core](#build-core)
+- [Build Plugins](#build-plugins)
+- [Write Plugins](#write-plugins)
+- [Utils](#utils)
+	- [Dump HTTP Requests and Responses](#dump-http-requests-and-responses)
+	- [Pass plugins data to results](#pass-plugins-data-to-results)
 
 ## Supported Environments
 
