@@ -107,7 +107,7 @@ then
   fi
  
   # creating ethanol user if he isn t already there
-  if ! getent passwd mysql >/dev/null; then
+  if ! getent passwd ethanol >/dev/null; then
     # Adding system user: ethanol.
     adduser \
       --system \
