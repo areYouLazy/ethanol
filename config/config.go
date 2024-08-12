@@ -10,42 +10,28 @@ import (
 )
 
 func Init() {
-	// check if we have a custom config file
-	if flags.ConfigFile != "" {
-		// check if there's a relative or absolute path in filename
-		fpath, fname := path.Split(flags.ConfigFile)
+	// check if there's a relative or absolute path in filename
+	fpath, fname := path.Split(flags.Config)
 
-		// path.Split() returns empty fpath if there are no slashes in the provided file path
-		if fpath != "" {
-			// we found a path
-			viper.AddConfigPath(fpath)
-		}
-		// set filename
-		viper.SetConfigFile(fname)
-
-		// log
-		logrus.WithFields(logrus.Fields{
-			"file_path": fpath,
-			"file_name": fname,
-		}).Info("custom configuration file provided")
-	} else {
-		viper.SetConfigName("config.yml")
+	// path.Split() returns empty fpath if there are no slashes in the provided file path
+	if fpath == "" {
+		// add current path if omitted
+		fpath = "."
 	}
 
-	viper.AddConfigPath(".")
+	// add configuration path
+	viper.AddConfigPath(fpath)
+
+	// set filename
+	viper.SetConfigFile(fname)
 
 	// set configuration type, default to yaml
 	viper.SetConfigType("yaml")
 
-	// set configuration type as json if requested by flag
-	if flags.ConfigJSON {
-		viper.SetConfigType("json")
-		logrus.Debug("reading configuration as a json file")
-	}
-
 	// log
 	logrus.WithFields(logrus.Fields{
 		"file_name": viper.GetViper().ConfigFileUsed(),
+		"file_path": fpath,
 	}).Info("reading configuration file")
 
 	// read configuration file

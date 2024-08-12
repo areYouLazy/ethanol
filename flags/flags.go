@@ -7,8 +7,7 @@ var (
 	LogFormatJSON bool
 	LogCaller     bool
 
-	ConfigFile string
-	ConfigJSON bool
+	Config string
 )
 
 func Init() {
@@ -16,8 +15,7 @@ func Init() {
 	flag.BoolVar(&LogFormatJSON, "json", false, "print log messages in json format (default false)")
 	flag.BoolVar(&LogCaller, "caller", false, "print log messages caller (default false)")
 
-	flag.StringVar(&ConfigFile, "config-file", "", "use a custom configuration file")
-	flag.BoolVar(&ConfigJSON, "config-json", false, "read configuration file as json")
+	flag.StringVar(&Config, "config", "config.yml", "use a custom configuration file")
 
 	flag.Parse()
 }

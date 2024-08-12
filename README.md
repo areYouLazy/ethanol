@@ -63,15 +63,13 @@ This is not a thing `ethanol` can handle (as far as I know!)
 root@localhost$
 Usage of ./ethanol:
   -caller
-    	print log messages caller (default false)
-  -config-file string
-    	use a custom configuration file
-  -config-json
-    	read configuration file as json
+        print log messages caller (default false)
+  -config string
+        use a custom configuration file (default "config.yml")
   -debug
-    	print debug log messages (default false)
+        print debug log messages (default false)
   -json
-    	print log messages in json format (default false)
+        print log messages in json format (default false)
 ```
 
 ## Build Core
