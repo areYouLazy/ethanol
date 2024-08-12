@@ -12,8 +12,8 @@ func renderHTMLResultsFromJSON(results []types.SearchResult) string {
 	var w bytes.Buffer
 
 	// load templates from files
-	tmpl, _ := template.New("card").ParseFiles("ui/templates/checkmk.html")
-	// checkmk, _ := template.New("card").ParseFiles("ui/templates/card.html")
+	tmpl, _ := template.New("card").ParseFiles("ui/templates/*.html")
+	// checkmk, _ := template.New("card").ParseFiles("ui/templates/checkmk.html")
 	// jira, _ := template.New("jira").ParseFiles("ui/templates/jira.html")
 	// syspass, _ := template.New("syspass").ParseFiles("ui/templates/syspass.html")
 	// otrs, _ := template.New("otrs").ParseFiles("ui/templates/otrs.html")
