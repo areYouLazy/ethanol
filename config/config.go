@@ -20,19 +20,19 @@ func Init() {
 			// we found a path
 			viper.AddConfigPath(fpath)
 		}
-
-		// add default location and custom file name
-		viper.AddConfigPath(".")
+		// set filename
 		viper.SetConfigFile(fname)
 
 		// log
 		logrus.WithFields(logrus.Fields{
-			"filename": flags.ConfigFile,
+			"file_path": fpath,
+			"file_name": fname,
 		}).Info("custom configuration file provided")
 	} else {
-		viper.SetConfigName("config")
-		viper.AddConfigPath(".")
+		viper.SetConfigName("config.yml")
 	}
+
+	viper.AddConfigPath(".")
 
 	// set configuration type, default to yaml
 	viper.SetConfigType("yaml")

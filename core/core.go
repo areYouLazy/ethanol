@@ -14,6 +14,14 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	// secure is true if ListenAndServeTLS is used
+	secure = false
+
+	// scheme is "https" if ListeAndServeTLS is used
+	scheme = "http"
+)
+
 type Core struct{}
 
 func NewCore() *Core {
@@ -25,8 +33,6 @@ func NewCore() *Core {
 }
 
 func (c *Core) Init() {
-	var wait time.Duration
-
 	// tls
 	err := checkEthanolTLSCertificateKeyPair()
 	if err != nil {
@@ -50,9 +56,12 @@ func (c *Core) Init() {
 		ErrorLog: log.New(w, "", 0),
 	}
 
+	// check if we need to server as a TLS server
+	secure := viper.GetBool("ethanol.server.tls.enabled")
+
 	// use goroutines to start services
 	go func() {
-		if viper.GetBool("ethanol.server.tls.enabled") {
+		if secure {
 			if err := srv.ListenAndServeTLS("", ""); err != nil {
 				if err != http.ErrServerClosed {
 					logrus.WithFields(logrus.Fields{
@@ -81,9 +90,15 @@ func (c *Core) Init() {
 	// listen for SIGINT
 	signal.Notify(signalChannel, os.Interrupt)
 
+	// adjust scheme according to webserver configuration
+	scheme := "http"
+	if secure {
+		scheme = "https"
+	}
+
 	// greetings
 	logrus.WithFields(logrus.Fields{
-		"server_address": fmt.Sprintf("https://%s", srv.Addr),
+		"server_address": fmt.Sprintf("%s://%s", scheme, srv.Addr),
 	}).Info("ready to serve")
 
 	// debug configuration
@@ -96,8 +111,11 @@ func (c *Core) Init() {
 	// wait for events on signal channel
 	<-signalChannel
 
+	// load timeout value from config
+	wait := viper.GetDuration("ethanol.server.shutdowntimeout")
+
 	// create a context with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	ctx, cancel := context.WithTimeout(context.Background(), wait*time.Second)
 	defer cancel()
 
 	// shutdown services with context

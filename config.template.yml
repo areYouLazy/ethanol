@@ -44,6 +44,7 @@ ethanol:
             readbuffersize: 1024 # websocket buffer, you should not change this
             writebuffersize: 1024 # websocket buffer, you should not change this
         writetimeout: 15 # server timeout, you should not change this
+        shutdowntimeout: 15 # server shutdown timeout, you should not change this
 plugins: # plugins configurations
     checkmk: # list of check_mk endpoints
         - endpoint: "" # http://{host}/{site}/check_mk/
@@ -73,4 +74,4 @@ plugins: # plugins configurations
     prtg:
         - endpoint: "" # https://{host}
           apitoken: "" # API Token
-          insecureskipsslverify: true # validate backend ssl certificate
+          insecureskipsslverify: false # validate backend ssl certificate
