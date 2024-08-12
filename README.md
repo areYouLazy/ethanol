@@ -9,7 +9,6 @@ It is like a [MetaSearch Engine](https://en.wikipedia.org/wiki/Metasearch_engine
 - [Supported Environments](#supported-environments)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Notes](#notes)
 - [Help](#help)
 - [Build Core](#build-core)
 - [Build Plugins](#build-plugins)
@@ -49,12 +48,6 @@ root@localhost$ ./ethanol
 Once `ethanol` is started, you can connect to the WebUI. The default address is `http://<IP-address>:8888/ui/index`
 
 From there you can use the Search Bar to input your searches.
-
-## Notes
-
-Keep in mind that, while we love `RegEx`, some applications may not be able to correctly handle special kind of search, so the same query (let's say: `SRV*`) can produce a wide range of results for one plugin while returning no results in another one because there's no object literaly called `SRV*`
-
-This is not a thing `ethanol` can handle (as far as I know!)
 
 ## Help
 
